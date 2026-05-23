@@ -31,7 +31,8 @@ function App() {
     try {
       const res = await axios.post(
         "https://email-automation-tool-0ng9.onrender.com/send-email",
-        formData
+        formData,
+        { timeout: 60000 }
       );
 
       alert(res.data);
