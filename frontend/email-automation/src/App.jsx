@@ -11,22 +11,39 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!emails || !subject || !message) {
+      alert("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData();
     formData.append("emails", emails);
     formData.append("subject", subject);
     formData.append("message", message);
-    formData.append("resume", resume);
+
+    if (resume) {
+      formData.append("resume", resume);
+    }
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/send-email",
+        "https://email-automation-tool-0ng9.onrender.com/send-email",
         formData
       );
+
       alert(res.data);
+
+      // clear form
+      setEmails("");
+      setSubject("");
+      setMessage("");
+      setResume(null);
+
     } catch (err) {
-      alert("Error sending emails");
+      alert(err.response?.data || "Something went wrong");
     }
 
     setLoading(false);
@@ -35,7 +52,7 @@ function App() {
   return (
     <div className="container">
       <div className="card">
-        <h2>Email Automation Tool</h2>
+        <h2>Recruiter Email Automation Tool</h2>
 
         <form onSubmit={handleSubmit}>
           <input
