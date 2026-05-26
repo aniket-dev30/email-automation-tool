@@ -30,10 +30,7 @@ function App() {
     }
 
     try {
-      const res = await axios.post(`${backendUrl}/send-email`, formData, {
-        timeout: 60000,
-      });
-
+      const res = await axios.post(`${backendUrl}/send-email`, formData);
       alert(res.data);
 
       // clear form
