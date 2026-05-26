@@ -3,17 +3,14 @@ require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
-const multer = require("multer");
 
 const app = express();
 
-// ✅ better CORS
+// ✅ CORS (allow all for now)
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-const upload = multer({ dest: "uploads/" });
-
-// Gmail transporter
+// ✅ Gmail transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -22,12 +19,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ health check route (VERY IMPORTANT FOR RENDER)
+// ✅ Health check route (important for Render)
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-app.post("/send-email", upload.single("resume"), async (req, res) => {
+// ✅ Send Email API (NO FILE UPLOAD — stable version)
+app.post("/send-email", async (req, res) => {
   const { emails, subject, message } = req.body;
 
   // ✅ validation
@@ -38,30 +36,26 @@ app.post("/send-email", upload.single("resume"), async (req, res) => {
   const emailList = emails.split(",");
 
   try {
-    for (let email of emailList) {
-      await transporter.sendMail({
-        // ✅ use env email (IMPORTANT FIX)
-        from: `"Aniket Automation Tool" <${process.env.EMAIL_USER}>`,
-        to: email.trim(),
-        subject: subject,
-        text: message,
-
-        attachments: req.file
-          ? [
-              {
-                filename: req.file.originalname,
-                path: req.file.path,
-              },
-            ]
-          : [],
-      });
-    }
+    // ✅ FAST parallel sending (prevents timeout)
+    await Promise.all(
+      emailList.map((email) =>
+        transporter.sendMail({
+          from: `"Aniket Automation Tool" <${process.env.EMAIL_USER}>`,
+          to: email.trim(),
+          subject: subject,
+          text: message,
+        })
+      )
+    );
 
     res.send("Emails sent successfully 🚀");
   } catch (error) {
-    console.log("EMAIL ERROR:", error); // ✅ better debugging
+    console.log("EMAIL ERROR:", error);
     res.status(500).send("Error sending emails");
   }
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+// ✅ Start server
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});

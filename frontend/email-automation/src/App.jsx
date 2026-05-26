@@ -19,6 +19,7 @@ function App() {
 
     setLoading(true);
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
     const formData = new FormData();
     formData.append("emails", emails);
     formData.append("subject", subject);
@@ -29,11 +30,9 @@ function App() {
     }
 
     try {
-      const res = await axios.post(
-        "https://email-automation-tool-0ng9.onrender.com/send-email",
-        formData,
-        { timeout: 60000 }
-      );
+      const res = await axios.post(`${backendUrl}/send-email`, formData, {
+        timeout: 60000,
+      });
 
       alert(res.data);
 
@@ -42,12 +41,11 @@ function App() {
       setSubject("");
       setMessage("");
       setResume(null);
-
     } catch (err) {
-      alert(err.response?.data || "Something went wrong");
+      alert(err.response?.data || err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
